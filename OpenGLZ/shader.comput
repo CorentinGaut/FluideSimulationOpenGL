@@ -1,0 +1,41 @@
+#version 450
+
+layout(local_size_x = 32) in;
+
+struct particule
+{
+	vec4 position;
+	vec4 color;
+	vec4 speed;
+};
+
+uniform float deltaTime;
+
+layout(std430, binding = 0) buffer parts
+{
+	particule particules[];
+};
+
+vec3 resetPos(vec3 pos) {
+	if (pos.x > 8.f) {
+		pos = vec3( -8.f,pos.y,pos.z);
+	}
+	if (pos.y >= 8.f) {
+		pos = vec3( pos.x,-8.f,pos.z);
+	}
+	if (pos.z > 8.f) {
+		pos = vec3( pos.x,pos.y,-8.0f);
+	}
+
+	return pos;
+}
+
+void main(){
+
+	vec3 acc = particules[gl_GlobalInvocationID.x].position.w * 9.81f * vec3(0.f, 1.f, 0.f) + vec3(1.f, 1.f, 1.f);
+	particules[gl_GlobalInvocationID.x].speed.xyz = acc * deltaTime;
+	particules[gl_GlobalInvocationID.x].position.xyz += particules[gl_GlobalInvocationID.x].speed.xyz;
+
+	particules[gl_GlobalInvocationID.x].position.xyz = resetPos(particules[gl_GlobalInvocationID.x].position.xyz);
+
+}
